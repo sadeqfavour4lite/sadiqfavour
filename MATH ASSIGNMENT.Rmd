@@ -1,0 +1,231 @@
+---
+title: "Untitled"
+output: html_document
+date: "2024-03-27"
+---
+
+```{r }
+library(readxl)
+library(readr)
+library(dplyr)
+library(ggplot2)
+Data <- read_excel("C:/Users/sadeq/Downloads/3330111SportsPeople Data.xlsx")
+```
+
+
+```{r }
+Data.xlsx
+
+```
+
+
+```{r}
+# Display the first few rows of the data
+head(Data)
+```
+
+```{r}
+# Display the structure of the data
+str(Data)
+
+```
+
+```{r}
+# Display the summary statistics of the data
+```
+
+
+```{r}
+```
+
+
+```{r}
+# Display the summary statistics of the data
+summary(Data)
+```
+```{r}
+# Check for missing values
+colSums(is.na(Data))
+```
+```{r}
+# Convert 'Sex' column to factor if it's not already
+Data$Sex <- factor(Data$Sex)
+
+# Plot histogram for 'Sex' column using geom_bar()
+# If 'LBM' and 'BMI' columns are continuous, ensure they're treated as such
+# If they're supposed to be continuous but are categorical, convert them to numeric
+# Example:
+# Data$LBM <- as.numeric(Data$LBM)
+# Data$BMI <- as.numeric(Data$BMI)
+
+# Plot histogram for 'LBM' column using geom_histogram()
+ggplot(Data, aes(x = LBM)) +
+  geom_histogram(binwidth = 1, color = "black", fill = "white") +
+  labs(title = "Histogram for LBM", x = "LBM", y = "Count")
+
+# Plot histogram for 'BMI' column using geom_histogram()
+ggplot(Data, aes(x = BMI)) +
+  geom_histogram(binwidth = 1, color = "black", fill = "white") +
+  labs(title = "Histogram for BMI", x = "BMI", y = "Count")
+
+```
+
+
+```{r}
+# Check for outliers using boxplots for all numeric variables in the dataset
+par(mfrow = c(1, 1))  # Set up a single plot
+# Loop through each numeric variable in the dataset
+for (col in names(Data)) {
+if (is.numeric(Data[[col]])) {  # Check if the column is numeric
+boxplot(Data[[col]], main = paste("Boxplot of", col), outline=TRUE)
+}
+}
+```
+
+
+```{r}
+if (any(duplicated(Data))) {
+  # There are duplicates
+  print("Duplicates found in the dataset")
+} else {
+  # No duplicates found
+  print("No duplicates found")
+}
+
+
+
+```
+
+
+```{r}
+
+# Load required library
+library(car)
+
+# Perform Levene's test for homogeneity of variance
+levene_test_result <- leveneTest(LBM ~ Sex, data = Data, center = "median")
+
+# Print Levene's test results
+print("Levene's Test:")
+print(levene_test_result)
+
+
+```
+```{r}
+# Perform t-test
+t_test_result <- t.test(Data$LBM ~ Data$Sex)
+
+# Print the result
+print(t_test_result)
+
+
+```
+```{r}
+# Assuming your Data is in a Data frame named 'Data' with columns 'Sex', 'LBM', and 'BMI'
+
+# Subset the Data for males and females
+males <- subset(Data, Sex == "male")
+females <- subset(Data, Sex == "female")
+
+# Calculate the correlation coefficient for males
+correlation_male <- cor(males$LBM, males$BMI)
+
+# Calculate the correlation coefficient for females
+correlation_female <- cor(females$LBM, females$BMI)
+
+# Round the correlation coefficients to 3 decimal places
+correlation_male <- round(correlation_male, 3)
+correlation_female <- round(correlation_female, 3)
+
+# Print the correlation coefficients
+print("Correlation coefficient for males:")
+print(correlation_male)
+print("Correlation coefficient for females:")
+print(correlation_female)
+
+```
+```{r}
+# Scatter plot for males - LBM vs. BMI
+plot(males$BMI, males$LBM, xlab = "BMI", ylab = "LBM", main = "Scatter plot of LBM vs. BMI (Males)")
+
+# Add regression line (optional)
+abline(lm(LBM ~ BMI, data = males), col = "red")
+
+# Add correlation coefficient to the plot
+text(25, 100, paste("Correlation coefficient (r) =", round(cor(males$LBM, males$BMI), 3)), adj = 0)
+
+# Scatter plot for females - LBM vs. BMI
+plot(females$BMI, females$LBM, xlab = "BMI", ylab = "LBM", main = "Scatter plot of LBM vs. BMI (Females)")
+
+# Add regression line (optional)
+abline(lm(LBM ~ BMI, data = females), col = "blue")
+
+# Add correlation coefficient to the plot
+text(25, 100, paste("Correlation coefficient (r) =", round(cor(females$LBM, females$BMI), 3)), adj = 0)
+
+
+```
+
+
+```{r}
+# Fit linear regression model
+model <- lm(LBM ~ BMI, data = Data)
+
+# Summary of the fitted model
+summary(model)
+
+```
+```{r}
+# Fit linear regression model for males
+model <- lm(LBM ~ BMI, data = males)
+
+# Diagnostic plots
+par(mfrow = c(2, 2))  
+plot(model)  # Generate diagnostic plots
+
+```
+```{r}
+# Fit linear regression model for males
+model <- lm(LBM ~ BMI, data = males)
+
+# Conduct hypothesis test
+summary(model)
+
+```
+```{r}
+# Fit linear regression model for males
+model <- lm(LBM ~ BMI, data = males)
+
+# Predict LBM for a BMI of 25
+new_data <- data.frame(BMI = 25)  # Create new data frame with BMI = 25
+predicted_LBM <- predict(model, newdata = new_data)
+
+# Round predicted LBM to three decimal places
+predicted_LBM_rounded <- round(predicted_LBM, 3)
+
+# Print predicted LBM
+print(predicted_LBM_rounded)
+
+```
+```{r}
+# Fit linear regression model for males
+model <- lm(LBM ~ BMI, data = males)
+
+# Predict LBM for males
+predicted_LBM <- predict(model, newdata = males)
+
+# Calculate evaluation metrics
+mse <- mean((males$LBM - predicted_LBM)^2)  # Mean Squared Error
+rmse <- sqrt(mse)  # Root Mean Squared Error
+mae <- mean(abs(males$LBM - predicted_LBM))  # Mean Absolute Error
+r_squared <- summary(model)$r.squared  # R-squared
+
+# Print evaluation metrics
+print("Evaluation Metrics:")
+print(paste("Mean Squared Error (MSE):", round(mse, 3)))
+print(paste("Root Mean Squared Error (RMSE):", round(rmse, 3)))
+print(paste("Mean Absolute Error (MAE):", round(mae, 3)))
+print(paste("R-squared (R2):", round(r_squared, 3)))
+
+```
+
